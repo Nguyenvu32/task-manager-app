@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task Manager</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <h1>Task Manager</h1>
+      <button id="themeToggle" class="theme-btn">Moon</button>
+    </header>
+
+    <main class="main">
+      <div class="add-form">
+        <input type="text" id="taskInput" placeholder="Them cong viec...">
+        <button id="addBtn">Them</button>
+      </div>
+      <ul class="task-list" id="taskList"></ul>
+      <div class="stats">
+        <span id="totalCount">0 cong viec</span>
+        <span id="doneCount">0 hoan thanh</span>
+      </div>
+    </main>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

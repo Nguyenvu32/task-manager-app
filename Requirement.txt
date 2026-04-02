@@ -1,0 +1,5 @@
+Source code management - Git&GitHub
+
+1.	Plan software maintenance (expected maintenance versions; briefly describe the functions and corresponding modifications of each version; work assignment plan (who, what, time to do, which branch to work on).
+2.	Introduce the branching model used for the demo.
+3.	Statistics and tracking of the maintenance process through commit history

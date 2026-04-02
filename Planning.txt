@@ -1,0 +1,1227 @@
+# ⚡ KẾ HOẠCH KHẨN — 3-5 NGÀY
+## Bắt đầu từ zero → Sẵn sàng vấn đáp
+### Môn: Vận hành & Bảo trì Phần mềm | Stack: HTML/CSS/JS | CI/CD: GitHub Actions → GitHub Pages
+
+---
+
+## 🎯 CHIẾN LƯỢC KHI CHỈ CÒN 3-5 NGÀY
+
+> **Nguyên tắc:** Thầy KHÔNG chấm điểm app đẹp hay code hay.
+> Thầy chấm điểm **quy trình vận hành** — bằng chứng là:
+> CI/CD chạy thật, commit history có cấu trúc, phân nhánh đúng model.
+>
+> → App chỉ cần **chạy được**, không cần đẹp.
+> → CI/CD phải **chạy thật**, có Actions history.
+> → Commit history phải **đủ dày**, đúng Conventional Commits.
+> → Phải có **ít nhất 2 phiên bản release** có tag.
+> → Phải có **1 hotfix** để demo quy trình khẩn cấp.
+
+---
+
+## 📦 KẾT QUẢ TỐI THIỂU CẦN ĐẠT
+
+```
+✅ Repo có cấu trúc đúng (src/, .github/workflows/, tests/)
+✅ CI chạy thật: validate HTML + lint CSS + jest tests
+✅ CD chạy thật: auto deploy lên GitHub Pages khi merge main
+✅ 2 nhánh chính: main + develop
+✅ Ít nhất 5 nhánh feature/fix đã merge (có trong history)
+✅ Ít nhất 25 commits, chia đều 2 người
+✅ Tag: v1.0.0, v1.1.0, v1.1.1 (hotfix)
+✅ Branch protection bật: require PR + CI pass trước khi merge
+✅ Milestones + Issues liên kết với PR
+✅ CHANGELOG có nội dung
+✅ Website live trên GitHub Pages
+```
+
+---
+
+## ═══════════════════════════════════════════
+## NGÀY 1 (BUỔI SÁNG) — HẠ TẦNG
+## Thời gian: 3 tiếng | Cả hai ngồi cùng nhau
+## ═══════════════════════════════════════════
+
+> Kết thúc buổi sáng: repo tồn tại, CI/CD đã cấu hình xong,
+> website đã live lần đầu tiên dù chỉ là trang trắng.
+
+---
+
+### BƯỚC 1 — Tạo repo & cấu trúc (30 phút)
+
+**Thành viên A làm, B ngồi xem:**
+
+```bash
+# Tạo repo trên GitHub:
+# Tên: task-manager-app | Public | Add README | .gitignore: Node
+
+git clone https://github.com/<userA>/task-manager-app.git
+cd task-manager-app
+
+# Cấu hình tê
+git config user.name  "Tên A"
+git config user.email "emailA@gmail.com"
+
+# Tạo cấu trúc thư mục
+mkdir -p .github/workflows src tests docs
+
+touch .github/workflows/ci.yml
+touch .github/workflows/deploy.yml
+touch src/index.html src/style.css src/app.js
+touch tests/app.test.js
+touch docs/CHANGELOG.md
+touch package.json .stylelintrc.json
+
+git add .
+git commit -m "chore: initialize project structure"
+
+# Tạo nhánh develop
+git checkout -b develop
+git push -u origin develop
+```
+
+**Thành viên B: Thêm vào repo + clone về:**
+
+```
+GitHub → Settings → Collaborators → Add people → @userB
+
+# B trên máy mình:
+git clone https://github.com/<userA>/task-manager-app.git
+cd task-manager-app
+git checkout develop
+git config user.name  "Tên B"
+git config user.email "emailB@gmail.com"
+```
+
+---
+
+### BƯỚC 2 — Điền nội dung file cấu hình (45 phút)
+
+**A điền `package.json`:**
+
+```json
+{
+  "name": "task-manager-app",
+  "version": "1.0.0",
+  "description": "Task Manager — SCM Demo",
+  "scripts": {
+    "test": "jest",
+    "lint:css": "stylelint \"src/**/*.css\"",
+    "validate": "html-validate src/index.html"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0",
+    "jest-environment-jsdom": "^29.0.0",
+    "html-validate": "^8.0.0",
+    "stylelint": "^15.0.0",
+    "stylelint-config-standard": "^34.0.0"
+  },
+  "jest": {
+    "testEnvironment": "jsdom"
+  }
+}
+```
+
+**A điền `.stylelintrc.json`:**
+
+```json
+{
+  "extends": "stylelint-config-standard",
+  "rules": {
+    "color-no-invalid-hex": true,
+    "property-no-unknown": true,
+    "no-empty-source": true
+  }
+}
+```
+
+**A điền `.github/workflows/ci.yml`:**
+
+```yaml
+name: CI — Code Quality Check
+
+on:
+  pull_request:
+    branches: [ develop, main ]
+
+jobs:
+  quality-check:
+    name: "Validate & Test"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "📥 Checkout code"
+        uses: actions/checkout@v4
+
+      - name: "⚙️ Setup Node.js 20"
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: "📦 Install dependencies"
+        run: npm ci
+
+      - name: "🔍 Validate HTML"
+        run: npx html-validate src/index.html
+
+      - name: "🎨 Lint CSS"
+        run: npx stylelint "src/**/*.css"
+
+      - name: "🧪 Run unit tests"
+        run: npm test
+```
+
+**A điền `.github/workflows/deploy.yml`:**
+
+```yaml
+name: CD — Auto Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "github-pages-deploy"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: "Build & Deploy"
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: "📥 Checkout"
+        uses: actions/checkout@v4
+
+      - name: "🔧 Configure Pages"
+        uses: actions/configure-pages@v4
+
+      - name: "🏗️ Build"
+        run: |
+          mkdir -p dist
+          cp -r src/* dist/
+
+      - name: "📤 Upload artifact"
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist'
+
+      - name: "🚀 Deploy"
+        id: deployment
+        uses: actions/deploy-pages@v4
+```
+
+---
+
+**B song song điền `src/index.html`:**
+
+```html
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task Manager</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <h1>📝 Task Manager</h1>
+      <button id="themeToggle" class="theme-btn">🌙</button>
+    </header>
+
+    <main class="main">
+      <div class="add-form">
+        <input type="text" id="taskInput" placeholder="Thêm công việc...">
+        <button id="addBtn">Thêm</button>
+      </div>
+      <ul class="task-list" id="taskList"></ul>
+      <div class="stats">
+        <span id="totalCount">0 công việc</span>
+        <span id="doneCount">0 hoàn thành</span>
+      </div>
+    </main>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
+```
+
+**B điền `src/style.css`:**
+
+```css
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: #f5f7fa;
+  color: #333;
+  min-height: 100vh;
+  transition: background 0.3s, color 0.3s;
+}
+
+body.dark { background: #1a1a2e; color: #e2e8f0; }
+
+.app { max-width: 600px; margin: 0 auto; padding: 24px 16px; }
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.header h1 { font-size: 1.8rem; color: #2563eb; }
+
+.theme-btn {
+  background: none;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 1.1rem;
+}
+
+.add-form { display: flex; gap: 8px; margin-bottom: 16px; }
+
+.add-form input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  outline: none;
+  background: white;
+  transition: border-color 0.2s;
+}
+
+.add-form input:focus { border-color: #2563eb; }
+
+body.dark .add-form input { background: #16213e; border-color: #334155; color: #e2e8f0; }
+
+.add-form button {
+  padding: 10px 20px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.add-form button:hover { background: #1d4ed8; }
+
+.task-list { list-style: none; }
+
+.task-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: white;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  animation: slideIn 0.25s ease;
+}
+
+body.dark .task-item { background: #16213e; }
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.task-item.completed .task-text { text-decoration: line-through; color: #999; }
+
+.task-item input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
+
+.task-text { flex: 1; font-size: 0.95rem; }
+
+.delete-btn {
+  padding: 4px 10px;
+  background: transparent;
+  border: 1px solid #fca5a5;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #dc2626;
+  font-size: 0.85rem;
+}
+
+.delete-btn:hover { background: #fff5f5; }
+
+.stats {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+@media (max-width: 480px) {
+  .add-form { flex-direction: column; }
+  .add-form button { width: 100%; }
+}
+```
+
+**B điền `src/app.js`:**
+
+```javascript
+// =============================================
+// Task Manager App
+// =============================================
+
+let tasks = [];
+
+function init() {
+  const saved = localStorage.getItem('tasks');
+  if (saved) tasks = JSON.parse(saved);
+  const theme = localStorage.getItem('theme');
+  if (theme === 'dark') document.body.classList.add('dark');
+  updateThemeBtn();
+  render();
+  bindEvents();
+}
+
+function save() {
+  localStorage.setItem('tasks', JSON.stringify(tasks));
+}
+
+function addTask(text, tags = []) {
+  if (!text || text.trim() === '') return null;
+  const task = {
+    id: Date.now().toString(),
+    text: text.trim(),
+    completed: false,
+    tags,
+    createdAt: new Date().toISOString()
+  };
+  tasks.push(task);
+  save();
+  return task;
+}
+
+function deleteTask(id) {
+  const idx = tasks.findIndex(t => t.id === id);
+  if (idx === -1) return false;
+  tasks.splice(idx, 1);
+  save();
+  return true;
+}
+
+function toggleTask(id) {
+  const task = tasks.find(t => t.id === id);
+  if (!task) return null;
+  task.completed = !task.completed;
+  save();
+  return task;
+}
+
+function filterTasks(tag) {
+  if (!tag) return tasks;
+  return tasks.filter(t => t.tags && t.tags.includes(tag));
+}
+
+function toggleTheme() {
+  document.body.classList.toggle('dark');
+  const isDark = document.body.classList.contains('dark');
+  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  updateThemeBtn();
+}
+
+function updateThemeBtn() {
+  const btn = document.getElementById('themeToggle');
+  if (btn) btn.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
+}
+
+function render() {
+  const list = document.getElementById('taskList');
+  if (!list) return;
+  list.innerHTML = '';
+  tasks.forEach(task => {
+    const li = document.createElement('li');
+    li.className = `task-item${task.completed ? ' completed' : ''}`;
+    li.dataset.id = task.id;
+    li.innerHTML = `
+      <input type="checkbox" ${task.completed ? 'checked' : ''}>
+      <span class="task-text">${task.text}</span>
+      <button class="delete-btn">Xóa</button>
+    `;
+    list.appendChild(li);
+  });
+  const total = document.getElementById('totalCount');
+  const done  = document.getElementById('doneCount');
+  if (total) total.textContent = `${tasks.length} công việc`;
+  if (done)  done.textContent  = `${tasks.filter(t => t.completed).length} hoàn thành`;
+}
+
+function bindEvents() {
+  const input = document.getElementById('taskInput');
+  const addBtn = document.getElementById('addBtn');
+  const list   = document.getElementById('taskList');
+  const theme  = document.getElementById('themeToggle');
+
+  if (addBtn) addBtn.addEventListener('click', () => {
+    addTask(input.value); input.value = ''; render();
+  });
+
+  if (input) input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { addTask(input.value); input.value = ''; render(); }
+  });
+
+  if (list) list.addEventListener('click', e => {
+    const item = e.target.closest('.task-item');
+    if (!item) return;
+    if (e.target.matches('input[type="checkbox"]')) { toggleTask(item.dataset.id); render(); }
+    if (e.target.matches('.delete-btn'))            { deleteTask(item.dataset.id); render(); }
+  });
+
+  if (theme) theme.addEventListener('click', toggleTheme);
+}
+
+if (typeof module !== 'undefined') {
+  module.exports = { addTask, deleteTask, toggleTask, filterTasks };
+}
+
+if (typeof document !== 'undefined') {
+  document.addEventListener('DOMContentLoaded', init);
+}
+```
+
+**B điền `tests/app.test.js`:**
+
+```javascript
+const localStorageMock = (() => {
+  let store = {};
+  return {
+    getItem:  k     => store[k] || null,
+    setItem:  (k,v) => { store[k] = String(v); },
+    clear:    ()    => { store = {}; }
+  };
+})();
+Object.defineProperty(window, 'localStorage', { value: localStorageMock });
+
+const { addTask, deleteTask, toggleTask, filterTasks } = require('../src/app.js');
+
+describe('Task Manager Core', () => {
+  beforeEach(() => localStorage.clear());
+
+  test('addTask: creates task with correct properties', () => {
+    const t = addTask('Học Git');
+    expect(t.text).toBe('Học Git');
+    expect(t.completed).toBe(false);
+    expect(t.id).toBeDefined();
+  });
+
+  test('addTask: returns null for empty string', () => {
+    expect(addTask('')).toBeNull();
+  });
+
+  test('deleteTask: returns true when task exists', () => {
+    const t = addTask('Xóa cái này');
+    expect(deleteTask(t.id)).toBe(true);
+  });
+
+  test('deleteTask: returns false when id not found', () => {
+    expect(deleteTask('fake-id')).toBe(false);
+  });
+
+  test('toggleTask: flips completed status', () => {
+    const t = addTask('Chưa xong');
+    expect(toggleTask(t.id).completed).toBe(true);
+  });
+
+  test('filterTasks: returns tasks matching tag', () => {
+    addTask('A', ['work']);
+    addTask('B', ['personal']);
+    addTask('C', ['work']);
+    expect(filterTasks('work').length).toBe(2);
+  });
+});
+```
+
+---
+
+### BƯỚC 3 — Cài npm, commit, và TEST PIPELINE LẦN ĐẦU (45 phút)
+
+```bash
+# A chạy lệnh này
+npm install
+# → tạo ra package-lock.json
+
+git add .
+git commit -m "chore(ci): add CI/CD workflows and project config"
+git push origin develop
+```
+
+**Bật GitHub Pages:**
+
+```
+GitHub → Settings → Pages → Source: GitHub Actions → Save
+```
+
+**Test CI bằng cách tạo PR:**
+
+```bash
+# Tạo nhánh nhỏ để trigger CI
+git checkout -b chore/test-pipeline
+echo "<!-- tested -->" >> src/index.html
+git add . && git commit -m "chore: test CI pipeline trigger"
+git push origin chore/test-pipeline
+```
+
+```
+→ Tạo PR vào develop trên GitHub
+→ Mở tab Actions — xem CI chạy
+→ Nếu PASS: merge PR
+→ Nếu FAIL: đọc log, sửa lỗi (xem mục debug bên dưới)
+```
+
+**Test CD bằng cách merge vào main:**
+
+```bash
+git checkout main
+git merge --no-ff develop -m "Release v1.0.0: Initial release"
+git tag -a v1.0.0 -m "v1.0.0: Initial release"
+git push origin main --tags
+```
+
+```
+→ Mở tab Actions — xem CD chạy
+→ Sau ~60 giây: mở https://<user>.github.io/task-manager-app
+→ Website đang live ✅
+```
+
+---
+
+### BƯỚC 4 — Branch Protection + GitHub Setup (30 phút)
+
+```
+GitHub → Settings → Branches → Add branch ruleset
+
+Cho "main":
+  ✅ Require PR before merging (Required approvals: 1)
+  ✅ Require status checks: "Validate & Test"
+  ✅ Do not allow bypassing
+
+Làm tương tự cho "develop"
+```
+
+```
+Labels:
+  🟥 bug         #d73a4a
+  🟦 enhancement #0075ca
+  🟧 hotfix      #e4e669
+
+Milestones:
+  v1.1.0 — Corrective Maintenance
+  v1.1.1 — Hotfix
+
+Projects → New Board:
+  Cột: To Do | In Progress | In Review | Done
+```
+
+---
+
+### ✅ CHECKPOINT NGÀY 1 BUỔI SÁNG
+
+```
+□ Cả 2 đã clone và có quyền push
+□ CI chạy GREEN ít nhất 1 lần
+□ CD đã deploy, website live
+□ Tag v1.0.0 tồn tại
+□ Branch protection đã bật
+□ GitHub Pages source: GitHub Actions
+```
+
+---
+
+## ═══════════════════════════════════════════
+## NGÀY 1 (BUỔI CHIỀU) + NGÀY 2 — BẢO TRÌ v1.1.0
+## Thời gian: ~5 tiếng | A và B làm song song
+## ═══════════════════════════════════════════
+
+> Kết thúc ngày 2: v1.1.0 đã release, có 3 commits từ 2 người,
+> mỗi người đã tạo PR và review PR ít nhất 1 lần.
+
+---
+
+### Tạo Issues trước (5 phút)
+
+```
+Issue #01: fix(enter): Submit task on Enter key press
+  Label: bug | Assignee: A | Milestone: v1.1.0
+
+Issue #02: fix(checkbox): Persist checked state after reload
+  Label: bug | Assignee: B | Milestone: v1.1.0
+
+Issue #03: fix(delete): Improve cross-browser delete button
+  Label: bug | Assignee: A | Milestone: v1.1.0
+```
+
+---
+
+### A làm — `fix/enter-key-submit`
+
+> *(fix đã có trong app.js rồi — tạo commit riêng để lịch sử có nhánh)*
+
+```bash
+git checkout develop && git pull origin develop
+git checkout -b fix/enter-key-submit
+
+# Mở app.js, tìm phần keydown event, thêm comment mô tả
+# Hoặc extract hàm handleEnter() riêng để commit rõ hơn
+
+git add src/app.js
+git commit -m "fix(enter): submit task on Enter key press
+
+Closes #01
+- Add keydown listener on taskInput element
+- Call addTask() and clear input when key === 'Enter'"
+
+git push origin fix/enter-key-submit
+# → Tạo PR vào develop → assign B review
+```
+
+---
+
+### B làm — `fix/checkbox-persistence` (song song với A)
+
+```bash
+git checkout develop && git pull origin develop
+git checkout -b fix/checkbox-persistence
+
+# Đảm bảo save() được gọi sau toggleTask
+# Đảm bảo init() load đúng từ localStorage
+
+git add src/app.js
+git commit -m "fix(checkbox): persist checked state after page reload
+
+Closes #02
+- Verify save() is called in every toggleTask()
+- Ensure init() correctly parses localStorage JSON"
+
+git push origin fix/checkbox-persistence
+# → Tạo PR vào develop → assign A review
+```
+
+---
+
+### Review chéo + Merge
+
+```
+A review PR của B → Approve → Merge
+B review PR của A → Approve → Merge
+
+# Sau khi cả 2 đã merge:
+git checkout develop && git pull
+git log --oneline --graph -8
+```
+
+---
+
+### A làm thêm — `fix/safari-delete-btn`
+
+```bash
+git checkout develop && git pull
+git checkout -b fix/safari-delete-btn
+
+# Trong app.js, đổi từ classList.contains sang .matches()
+# để tương thích Safari tốt hơn
+
+git add src/app.js
+git commit -m "fix(delete): use .matches() for cross-browser compatibility
+
+Closes #03
+- Replace classList.contains with element.matches()
+- Fixes delete button click on Safari browser"
+
+git push origin fix/safari-delete-btn
+# → PR → B review → Merge
+```
+
+---
+
+### Cập nhật CHANGELOG + Release v1.1.0
+
+```bash
+git checkout develop && git pull
+
+# B cập nhật CHANGELOG
+git checkout -b docs/changelog-v1.1.0
+```
+
+**Nội dung `docs/CHANGELOG.md`:**
+
+```markdown
+# CHANGELOG
+
+## [v1.1.0] — Corrective Maintenance
+### Fixed
+- fix(enter): Submit task on Enter key press (#01)
+- fix(checkbox): Persist checked state after page reload (#02)
+- fix(delete): Cross-browser delete button compatibility (#03)
+
+## [v1.0.0] — Initial Release
+- feat: Task Manager initial release with add/delete/complete features
+```
+
+```bash
+git add docs/CHANGELOG.md
+git commit -m "docs: add CHANGELOG for v1.1.0"
+git push origin docs/changelog-v1.1.0
+# → PR → Merge
+```
+
+**A release v1.1.0:**
+
+```bash
+git checkout develop && git pull
+git log --oneline --no-merges v1.0.0..HEAD
+# Phải thấy ít nhất 3 fix commits + 1 docs commit
+
+git checkout main && git pull
+git merge --no-ff develop -m "Release v1.1.0: Corrective maintenance — 3 bug fixes"
+git tag -a v1.1.0 -m "v1.1.0: Fix Enter key, checkbox state, Safari delete"
+git push origin main --tags
+```
+
+```
+→ CD tự động chạy → website cập nhật
+→ Tạo GitHub Release:
+  Releases → Draft new release → Tag: v1.1.0
+  Title: v1.1.0 — Corrective Maintenance
+  Body: dán nội dung CHANGELOG
+  → Publish release
+```
+
+---
+
+### ✅ CHECKPOINT NGÀY 2
+
+```
+□ 3 nhánh fix/* đã merge vào develop (có trong git log --graph)
+□ Mỗi người đã tạo ít nhất 1 PR + review ít nhất 1 PR
+□ Tag v1.1.0 tồn tại
+□ GitHub Release v1.1.0 đã publish
+□ Milestone v1.1.0: 3/3 ██████████ 100%
+□ Actions history: ít nhất 8 workflow runs
+□ Website live v1.1.0
+```
+
+---
+
+## ═══════════════════════════════════════════
+## NGÀY 3 — TÍNH NĂNG MỚI + HOTFIX
+## Thời gian: 5-6 tiếng | A và B song song
+## ═══════════════════════════════════════════
+
+> Kết thúc ngày 3: có thêm 2 feature commits, 1 hotfix với tag v1.1.1
+> commit history đủ dày để thống kê đẹp khi demo.
+
+---
+
+### Tạo Issues (5 phút)
+
+```
+Issue #04: feat(dark-mode): Add dark mode toggle
+  Label: enhancement | Assignee: B | Milestone: (để trống hoặc v1.2.0)
+
+Issue #05: feat(stats): Add task completion statistics
+  Label: enhancement | Assignee: A
+
+Issue #06: HOTFIX — Data loss bug simulation
+  Label: hotfix | Assignee: Cả hai
+```
+
+---
+
+### A làm — `feature/task-stats` (buổi sáng)
+
+```bash
+git checkout develop && git pull
+git checkout -b feature/task-stats
+
+# Cải thiện phần stats: thêm % hoàn thành, thêm màu sắc
+```
+
+**Thêm vào `style.css`:**
+
+```css
+/* Stats improvement */
+.stats {
+  background: white;
+  border-radius: 8px;
+  padding: 10px 14px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+body.dark .stats { background: #16213e; color: #94a3b8; }
+
+.progress-bar {
+  height: 4px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  margin-top: 8px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #2563eb;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+```
+
+**Thêm vào `index.html` (trong .stats):**
+
+```html
+<div class="stats">
+  <div class="stats-row">
+    <span id="totalCount">0 công việc</span>
+    <span id="doneCount">0 hoàn thành</span>
+  </div>
+  <div class="progress-bar">
+    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+  </div>
+</div>
+```
+
+**Cập nhật hàm `render()` trong `app.js`:**
+
+```javascript
+// Thêm vào cuối hàm render():
+const fill = document.getElementById('progressFill');
+if (fill && tasks.length > 0) {
+  const pct = Math.round((tasks.filter(t => t.completed).length / tasks.length) * 100);
+  fill.style.width = `${pct}%`;
+} else if (fill) {
+  fill.style.width = '0%';
+}
+```
+
+```bash
+git add src/
+git commit -m "feat(stats): add task completion progress bar
+
+Closes #05
+- Add visual progress bar showing completion percentage
+- Update render() to calculate and animate progress
+- Style progress bar with dark mode support"
+
+git push origin feature/task-stats
+# → PR → B review → Merge
+```
+
+---
+
+### B làm — `feature/dark-mode` (song song với A)
+
+> *(dark mode đã có sẵn trong code từ đầu — tạo PR riêng để lịch sử đẹp)*
+
+```bash
+git checkout develop && git pull
+git checkout -b feature/dark-mode
+
+# Tách logic dark mode thành hàm riêng, thêm comment
+# Hoặc thêm transition mượt hơn
+
+git add src/
+git commit -m "feat(dark-mode): add dark mode with localStorage persistence
+
+Closes #04
+- Toggle dark class on body element
+- Save preference to localStorage
+- Load saved theme on page init
+- Update toggle button icon dynamically"
+
+git push origin feature/dark-mode
+# → PR → A review → Merge
+```
+
+---
+
+### Demo Hotfix (buổi chiều — cả hai làm cùng nhau)
+
+```
+💡 Tình huống: Sau v1.1.0, phát hiện bug nghiêm trọng:
+   localStorage bị lỗi trên một số browser cũ → mất data
+   Cần vá NGAY, không chờ features đang làm ở develop
+```
+
+```bash
+# Xuất phát từ MAIN (không phải develop!)
+git checkout main && git pull
+git checkout -b hotfix/localstorage-safeguard
+
+# Thêm try-catch bảo vệ localStorage trong app.js
+```
+
+**Sửa hàm `save()` và `init()` trong `app.js`:**
+
+```javascript
+function save() {
+  try {
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+  } catch (e) {
+    console.warn('localStorage unavailable, data not persisted:', e);
+  }
+}
+
+function init() {
+  try {
+    const saved = localStorage.getItem('tasks');
+    if (saved) tasks = JSON.parse(saved);
+    const theme = localStorage.getItem('theme');
+    if (theme === 'dark') document.body.classList.add('dark');
+  } catch (e) {
+    console.warn('localStorage read failed, starting fresh:', e);
+    tasks = [];
+  }
+  updateThemeBtn();
+  render();
+  bindEvents();
+}
+```
+
+```bash
+git add src/app.js
+git commit -m "hotfix(storage): add try-catch for localStorage operations
+
+- Prevents app crash when localStorage is disabled
+- Graceful fallback to in-memory storage
+- Fixes data loss on restricted browser environments"
+
+# ── Merge vào MAIN → trigger CD → bản vá live ngay ──
+git checkout main
+git merge --no-ff hotfix/localstorage-safeguard \
+  -m "Merge hotfix: localStorage safeguard"
+git tag -a v1.1.1 -m "v1.1.1: Hotfix — localStorage error handling"
+git push origin main --tags
+
+# ── Merge về DEVELOP — KHÔNG được bỏ bước này ──
+git checkout develop
+git merge --no-ff hotfix/localstorage-safeguard \
+  -m "Merge hotfix back into develop"
+git push origin develop
+
+# ── Dọn dẹp ──
+git branch -d hotfix/localstorage-safeguard
+git push origin --delete hotfix/localstorage-safeguard
+
+echo "✅ Hotfix v1.1.1 deployed automatically via CD pipeline"
+```
+
+```
+→ Mở GitHub Actions: thấy CD pipeline đang chạy
+→ ~60 giây sau: bản vá live
+→ Mở Tags: thấy v1.1.0 → v1.1.1 sát nhau (giữa là hotfix)
+```
+
+---
+
+### ✅ CHECKPOINT NGÀY 3
+
+```
+□ Ít nhất 2 feature/* branches đã merge
+□ Hotfix v1.1.1 đã deploy, tag tồn tại
+□ Hotfix đã merge vào CẢ main lẫn develop
+□ git log --graph hiển thị nhánh hotfix tách riêng khỏi develop
+□ Tổng commit toàn dự án: > 25
+□ Mỗi người: > 10 commits
+□ Actions history: > 15 runs
+```
+
+---
+
+## ═══════════════════════════════════════════
+## NGÀY 4 — BỔ SUNG & KIỂM TRA CHẤT LƯỢNG
+## Thời gian: 4-5 tiếng
+## ═══════════════════════════════════════════
+
+> Nếu nhóm chỉ có 3 ngày: bỏ ngày này, nhảy thẳng sang NGÀY 5.
+> Nếu có 4-5 ngày: ngày này dùng để tăng commit count + polish.
+
+---
+
+### Tùy chọn để tăng commit count (làm cái nào dễ nhất)
+
+**Option A — Thêm tính năng nhỏ: Filter done/todo**
+
+```bash
+git checkout develop && git pull
+git checkout -b feature/filter-tasks
+
+# Thêm 3 nút: Tất cả | Đang làm | Hoàn thành
+# Lọc hiển thị theo state
+
+git commit -m "feat(filter): add task filter by completion status"
+git push origin feature/filter-tasks
+```
+
+**Option B — Cải tiến UI: Empty state**
+
+```bash
+git checkout -b feature/empty-state
+# Khi không có task: hiển thị thông báo "Chưa có công việc nào"
+git commit -m "feat(ui): add empty state message when task list is empty"
+```
+
+**Option C — Thêm test cases**
+
+```bash
+git checkout -b test/improve-coverage
+# Thêm 3-4 test cases mới vào app.test.js
+git commit -m "test: add edge case tests for task operations"
+```
+
+---
+
+## ═══════════════════════════════════════════
+## NGÀY 4 hoặc 5 — TỔNG DUYỆT (BẮT BUỘC)
+## Thời gian: 3 tiếng | Không viết code mới
+## ═══════════════════════════════════════════
+
+### Buổi sáng — Kiểm tra kỹ thuật (1 tiếng)
+
+```bash
+# 1. Chạy toàn bộ lệnh thống kê — xem trước khi demo
+git log --oneline --graph --all --decorate
+
+# Đếm commit
+git shortlog -sn --all --no-merges
+# → Mỗi người phải có ít nhất 10 commits
+
+# Thống kê từng phiên bản
+echo "=== v1.0.0 → v1.1.0 ==="
+git log v1.0.0..v1.1.0 --oneline --no-merges
+
+echo "=== Hotfix ==="
+git log v1.1.0..v1.1.1 --oneline --no-merges
+
+# Kiểm tra tags
+git tag -l
+# → Phải có: v1.0.0  v1.1.0  v1.1.1
+
+# 2. Kiểm tra website live
+# → https://<user>.github.io/task-manager-app
+# → Test thêm task, dark mode, xóa, reload (localStorage còn không?)
+
+# 3. Tạo 1 PR nhỏ để CI chạy thêm 1 lần nữa
+git checkout develop
+git checkout -b chore/final-check
+echo "<!-- final check $(date) -->" >> README.md
+git add . && git commit -m "chore: final pre-demo check"
+git push origin chore/final-check
+# → Tạo PR → xem CI xanh → merge
+```
+
+### Buổi chiều — Tập trình bày (2 tiếng)
+
+```
+Chia 2 lượt, mỗi người trình bày từ đầu đến cuối:
+
+Lượt 1 — A trình bày, B đóng vai thầy hỏi:
+  Phần 1: Repo + git log --graph          (3 phút)
+  Phần 2: Issue → Branch → PR → Merge    (7 phút)
+  Phần 3: CI/CD — giải thích workflow     (8 phút)
+           → demo CI pass
+           → demo CI fail + block merge
+           → demo CD deploy
+  Phần 4: git shortlog, git blame          (4 phút)
+  Phần 5: Hotfix flow                     (5 phút)
+  Tổng: ~27 phút
+
+Lượt 2 — B trình bày, A đóng vai thầy hỏi
+  (Đảm bảo B cũng làm được mọi bước)
+
+Sau mỗi lượt: ghi lại chỗ nào vấp, luyện lại đúng chỗ đó.
+```
+
+---
+
+## ═══════════════════════════════════════════
+## CHECKLIST CUỐI CÙNG — ĐÊM TRƯỚC VẤN ĐÁP
+## ═══════════════════════════════════════════
+
+### Kỹ thuật
+
+```
+□ git log --oneline --graph --all  → hiển thị đẹp, có nhánh, có tag
+□ git shortlog -sn --all --no-merges → 2 người commit đều nhau
+□ git tag -l → v1.0.0, v1.1.0, v1.1.1 (tối thiểu)
+□ https://<user>.github.io/task-manager-app → website live
+□ GitHub Actions → có ít nhất 15 workflow runs
+□ Milestone v1.1.0 → 3/3 closed 100%
+□ Branch protection bật → không push thẳng được vào main
+□ CHANGELOG có nội dung 2 phiên bản
+□ Ít nhất 5 nhánh đã đóng (visible trong git log)
+```
+
+### Màn hình demo (chuẩn bị trước)
+
+```
+Terminal:
+  □ cd task-manager-app ✓
+  □ Font size 18-20px ✓
+  □ Chạy thử git log --graph trước ✓
+
+Trình duyệt — 6 tab mở sẵn theo thứ tự:
+  Tab 1: github.com/<user>/task-manager-app         (Code + nhánh)
+  Tab 2: .../actions                                (CI/CD history)
+  Tab 3: .../network                                (Network graph)
+  Tab 4: .../milestones                             (Tiến độ)
+  Tab 5: .../projects/1                             (Kanban board)
+  Tab 6: https://<user>.github.io/task-manager-app  (Website live)
+```
+
+### Câu nói chốt khi trình bày CI/CD cho thầy
+
+```
+"Thầy xem — từ lúc em push code đến lúc website cập nhật
+là đúng 60 giây, tự động hoàn toàn. CI kiểm tra HTML,
+CSS, và chạy unit tests. Nếu bất kỳ bước nào fail,
+GitHub tự block merge — không ai có thể đưa code lỗi
+lên production. Đây là nền tảng của vận hành phần mềm
+hiện đại: deploy nhanh, an toàn, không phụ thuộc người."
+```
+
+---
+
+## 📊 TIMELINE TÓM TẮT
+
+```
+Ngày 1 sáng  (~3h)  Hạ tầng: repo, CI/CD, website live lần đầu, v1.0.0
+Ngày 1 chiều (~2h)  Bắt đầu v1.1.0: tạo issues, A làm fix #01 + #03
+Ngày 2       (~4h)  B làm fix #02, review chéo, merge, release v1.1.0
+Ngày 3       (~5h)  2 features song song + hotfix v1.1.1
+Ngày 4       (~3h)  Thêm commit nếu cần + tổng duyệt + tập trình bày
+Ngày 5       (đệm)  Chỉ sửa lỗi nếu phát sinh, tập lại lần cuối
+```
+
+---
+
+## 🚨 DEBUG — Lỗi hay gặp khi setup lần đầu
+
+| Lỗi | Nguyên nhân | Cách sửa |
+|-----|------------|---------|
+| CI fail: "html-validate not found" | Chưa có `package-lock.json` | Chạy `npm install` và commit `package-lock.json` |
+| CI fail: "stylelint: No files matching" | Path sai | Đổi thành `"src/**/*.css"` (có dấu nháy kép) |
+| CI fail: "Cannot find module '../src/app.js'" | app.js chưa có `module.exports` | Thêm đoạn `if (typeof module !== 'undefined')` vào cuối app.js |
+| CD fail: "No artifacts found" | `dist/` rỗng hoặc copy sai | Kiểm tra `cp -r src/* dist/` có chạy không |
+| CD fail: "Pages not enabled" | Chưa bật GitHub Pages | Settings → Pages → Source: GitHub Actions |
+| Branch protection block push | Đang push thẳng vào main | Tạo PR thay vì push trực tiếp |
+| Jest fail: "localStorage is not defined" | Thiếu jsdom config | Đảm bảo `"testEnvironment": "jsdom"` trong package.json |
+
+---
+
+*Kế hoạch khẩn 3-5 ngày | HTML/CSS/JS + GitHub Actions + GitHub Pages*
+*Mục tiêu: CI/CD chạy thật + commit history đủ dày + demo quy trình vận hành rõ ràng*
