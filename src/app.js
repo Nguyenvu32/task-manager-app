@@ -91,7 +91,7 @@ function bindEvents() {
     addTask(input.value); input.value = ''; render();
   });
 
-  if (input) input.addEventListener('keydown', function(e) {
+  if (input) input.addEventListener('keydown', function(e) { // fix: use 'keydown' instead of 'keypress' for better compatibility
     if (e.key === 'Enter') { addTask(input.value); input.value = ''; render(); }
   });
 
