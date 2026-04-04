@@ -1,4 +1,5 @@
 let tasks = [];
+let currentFilter = 'all';
 
 function init() {
   try {
@@ -74,7 +75,18 @@ function render() {
   const list = document.getElementById('taskList');
   if (!list) return;
   list.innerHTML = '';
-  tasks.forEach(task => {
+
+  var displayTasks = getFilteredTasks();
+
+  if (displayTasks.length === 0) {
+    const empty = document.createElement('li');
+    empty.className = 'empty-state';
+    empty.textContent = 'Chua co cong viec nao. Hay them cong viec dau tien!';
+    list.appendChild(empty);
+    updateStats();
+    return;
+  }
+  displayTasks.forEach(task => {
     const li = document.createElement('li');
     li.className = 'task-item' + (task.completed ? ' completed' : '');
     li.dataset.id = task.id;
@@ -84,18 +96,13 @@ function render() {
       '<button class="delete-btn">Xoa</button>';
     list.appendChild(li);
   });
-  const total = document.getElementById('totalCount');
-  const done  = document.getElementById('doneCount');
-  if (total) total.textContent = tasks.length + ' cong viec';
-  if (done)  done.textContent  = tasks.filter(t => t.completed).length + ' hoan thanh';
+  updateStats();
+}
 
-  var fill = document.getElementById('progressFill');
-if (fill && tasks.length > 0) {
-  var pct = Math.round((tasks.filter(function(t) { return t.completed; }).length / tasks.length) * 100);
-  fill.style.width = pct + '%';
-} else if (fill) {
-  fill.style.width = '0%';
-  }
+function getFilteredTasks() {
+  if (currentFilter === 'active') return tasks.filter(function(t) { return !t.completed; });
+  if (currentFilter === 'done') return tasks.filter(function(t) { return t.completed; });
+  return tasks;
 }
 
 function bindEvents() {
@@ -103,12 +110,13 @@ function bindEvents() {
   const addBtn = document.getElementById('addBtn');
   const list   = document.getElementById('taskList');
   const theme  = document.getElementById('themeToggle');
+  const filterBar = document.querySelector('.filter-bar');
 
   if (addBtn) addBtn.addEventListener('click', function() {
     addTask(input.value); input.value = ''; render();
   });
 
-  if (input) input.addEventListener('keydown', function(e) { // fix: use 'keydown' instead of 'keypress' for better compatibility
+  if (input) input.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') { addTask(input.value); input.value = ''; render(); }
   });
 
@@ -119,11 +127,15 @@ function bindEvents() {
     if (e.target.matches('.delete-btn'))            { deleteTask(item.dataset.id); render(); }
   });
 
+  if (filterBar) filterBar.addEventListener('click', function(e) {
+    if (e.target.matches('.filter-btn')) setFilter(e.target.dataset.filter);
+  });
+
   if (theme) theme.addEventListener('click', toggleTheme);
 }
 
 if (typeof module !== 'undefined') {
-  module.exports = { addTask, deleteTask, toggleTask, filterTasks };
+  module.exports = { addTask, deleteTask, toggleTask, filterTasks, setFilter, getFilteredTasks };
 }
 
 if (typeof document !== 'undefined') {
