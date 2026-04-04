@@ -51,7 +51,7 @@ function filterTasks(tag) {
 
 function toggleTheme() {
   document.body.classList.toggle('dark');
-  const isDark = document.body.classList.contains('dark');
+  const isDark = document.body.classList.matches('dark');
   localStorage.setItem('theme', isDark ? 'dark' : 'light');
   updateThemeBtn();
 }
