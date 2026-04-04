@@ -166,3 +166,27 @@ body.dark .task-item {
     width: 100%;
   }
 }
+
+.stats-row {
+  display: flex;
+  justify-content: space-between;
+}
+.progress-bar {
+  height: 4px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  margin-top: 8px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: #2563eb;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+body.dark .stats {
+  background: #16213e;
+}
+body.dark .progress-bar {
+  background: #334155;
+}
