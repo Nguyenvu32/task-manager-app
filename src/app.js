@@ -88,6 +88,14 @@ function render() {
   const done  = document.getElementById('doneCount');
   if (total) total.textContent = tasks.length + ' cong viec';
   if (done)  done.textContent  = tasks.filter(t => t.completed).length + ' hoan thanh';
+
+  var fill = document.getElementById('progressFill');
+if (fill && tasks.length > 0) {
+  var pct = Math.round((tasks.filter(function(t) { return t.completed; }).length / tasks.length) * 100);
+  fill.style.width = pct + '%';
+} else if (fill) {
+  fill.style.width = '0%';
+  }
 }
 
 function bindEvents() {

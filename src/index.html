@@ -1,4 +1,3 @@
-<!--CI Test-->
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -21,9 +20,14 @@
       </div>
       <ul class="task-list" id="taskList"></ul>
       <div class="stats">
-        <span id="totalCount">0 cong viec</span>
-        <span id="doneCount">0 hoan thanh</span>
-      </div>
+       <div class="stats-row">
+          <span id="totalCount">0 cong viec</span>
+          <span id="doneCount">0 hoan thanh</span>
+       </div>
+          <div class="progress-bar">
+           <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+    </div>
     </main>
   </div>
   <script src="app.js"></script>
