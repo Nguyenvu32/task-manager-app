@@ -1,10 +1,15 @@
 let tasks = [];
 
 function init() {
-  const saved = localStorage.getItem('tasks');
-  if (saved) tasks = JSON.parse(saved);
-  const theme = localStorage.getItem('theme');
-  if (theme === 'dark') document.body.classList.add('dark');
+  try {
+    const saved = localStorage.getItem('tasks');
+    if (saved) tasks = JSON.parse(saved);
+    const theme = localStorage.getItem('theme');
+    if (theme === 'dark') document.body.classList.add('dark');
+  } catch (e) {
+    console.warn('localStorage read failed:', e);
+    tasks = [];
+  }
   updateThemeBtn();
   render();
   bindEvents();
@@ -41,7 +46,11 @@ function toggleTask(id) {
 }
 
 function save() {
-  localStorage.setItem('tasks', JSON.stringify(tasks));
+  try {
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+  } catch (e) {
+    console.warn('localStorage unavailable:', e);
+  }
 }
 
 function filterTasks(tag) {
