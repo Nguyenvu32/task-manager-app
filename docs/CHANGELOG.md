@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## [v1.2.1] — UI Improvements
+### Changed
+- feat(ui): remove empty state message and refactor render function
+
 ## [v1.2.0] — Enhancements & Hotfix
 ### Added
 - feat(stats): add task completion progress bar
