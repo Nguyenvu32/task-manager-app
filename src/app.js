@@ -10,10 +10,6 @@ function init() {
   bindEvents();
 }
 
-function save() {
-  localStorage.setItem('tasks', JSON.stringify(tasks));
-}
-
 function addTask(text, tags) {
   if (!text || text.trim() === '') return null;
   const task = {
@@ -42,6 +38,10 @@ function toggleTask(id) {
   task.completed = !task.completed;
   save();
   return task;
+}
+
+function save() {
+  localStorage.setItem('tasks', JSON.stringify(tasks));
 }
 
 function filterTasks(tag) {
