@@ -74,6 +74,14 @@ function render() {
   const list = document.getElementById('taskList');
   if (!list) return;
   list.innerHTML = '';
+  if (tasks.length === 0) {
+    const empty = document.createElement('li');
+    empty.className = 'empty-state';
+    empty.textContent = 'Chua co cong viec nao. Hay them cong viec dau tien!';
+    list.appendChild(empty);
+    updateStats();
+    return;
+  }
   tasks.forEach(task => {
     const li = document.createElement('li');
     li.className = 'task-item' + (task.completed ? ' completed' : '');
@@ -84,17 +92,21 @@ function render() {
       '<button class="delete-btn">Xoa</button>';
     list.appendChild(li);
   });
+  updateStats();
+}
+
+function updateStats() {
   const total = document.getElementById('totalCount');
   const done  = document.getElementById('doneCount');
   if (total) total.textContent = tasks.length + ' cong viec';
   if (done)  done.textContent  = tasks.filter(t => t.completed).length + ' hoan thanh';
 
   var fill = document.getElementById('progressFill');
-if (fill && tasks.length > 0) {
-  var pct = Math.round((tasks.filter(function(t) { return t.completed; }).length / tasks.length) * 100);
-  fill.style.width = pct + '%';
-} else if (fill) {
-  fill.style.width = '0%';
+  if (fill && tasks.length > 0) {
+    var pct = Math.round((tasks.filter(function(t) { return t.completed; }).length / tasks.length) * 100);
+    fill.style.width = pct + '%';
+  } else if (fill) {
+    fill.style.width = '0%';
   }
 }
 
