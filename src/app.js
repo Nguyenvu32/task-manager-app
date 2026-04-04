@@ -10,10 +10,6 @@ function init() {
   bindEvents();
 }
 
-function save() {
-  localStorage.setItem('tasks', JSON.stringify(tasks));
-}
-
 function addTask(text, tags) {
   if (!text || text.trim() === '') return null;
   const task = {
@@ -44,6 +40,10 @@ function toggleTask(id) {
   return task;
 }
 
+function save() {
+  localStorage.setItem('tasks', JSON.stringify(tasks));
+}
+
 function filterTasks(tag) {
   if (!tag) return tasks;
   return tasks.filter(t => t.tags && t.tags.includes(tag));
@@ -51,7 +51,7 @@ function filterTasks(tag) {
 
 function toggleTheme() {
   document.body.classList.toggle('dark');
-  const isDark = document.body.classList.contains('dark');
+  const isDark = document.body.classList.matches('dark');
   localStorage.setItem('theme', isDark ? 'dark' : 'light');
   updateThemeBtn();
 }
@@ -91,7 +91,7 @@ function bindEvents() {
     addTask(input.value); input.value = ''; render();
   });
 
-  if (input) input.addEventListener('keydown', function(e) {
+  if (input) input.addEventListener('keydown', function(e) { // fix: use 'keydown' instead of 'keypress' for better compatibility
     if (e.key === 'Enter') { addTask(input.value); input.value = ''; render(); }
   });
 
