@@ -120,8 +120,15 @@ function bindEvents() {
   });
 
   if (theme) theme.addEventListener('click', toggleTheme);
-}
+var clearBtn = document.getElementById('clearBtn');
+  if (clearBtn) clearBtn.addEventListener('click', clearCompleted);
+} 
 
+function clearCompleted() {
+  tasks = tasks.filter(function(t) { return !t.completed; });
+  save();
+  render();
+}
 if (typeof module !== 'undefined') {
   module.exports = { addTask, deleteTask, toggleTask, filterTasks };
 }
