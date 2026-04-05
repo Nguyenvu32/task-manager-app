@@ -80,7 +80,7 @@ function render() {
     li.dataset.id = task.id;
     li.innerHTML =
       '<input type="checkbox" ' + (task.completed ? 'checked' : '') + '>' +
-      '<span class="task-text">' + task.text + '</span>' +
+      '<span class="task-text" ondblclick="editTask(\'' + task.id + '\')">' + task.text + '</span>' +
       '<button class="delete-btn">Xoa</button>';
     list.appendChild(li);
   });
@@ -120,8 +120,25 @@ function bindEvents() {
   });
 
   if (theme) theme.addEventListener('click', toggleTheme);
-}
+var clearBtn = document.getElementById('clearBtn');
+  if (clearBtn) clearBtn.addEventListener('click', clearCompleted);
+} 
 
+function clearCompleted() {
+  tasks = tasks.filter(function(t) { return !t.completed; });
+  save();
+  render();
+}
+function editTask(id) {
+  var task = tasks.find(function(t) { return t.id === id; });
+  if (!task) return;
+  var newText = prompt('Sửa nội dung:', task.text);
+  if (newText && newText.trim()) {
+    task.text = newText.trim();
+    save();
+    render();
+  }
+}
 if (typeof module !== 'undefined') {
   module.exports = { addTask, deleteTask, toggleTask, filterTasks };
 }

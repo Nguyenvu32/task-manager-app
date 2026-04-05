@@ -195,3 +195,14 @@ body.dark .stats {
 body.dark .progress-bar {
   background: #334155;
 }
+.clear-btn {
+  padding: 4px 10px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  margin-left: 8px;
+}
+.clear-btn:hover { background: #dc2626; }
