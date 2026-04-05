@@ -60,7 +60,7 @@ function filterTasks(tag) {
 
 function toggleTheme() {
   document.body.classList.toggle('dark');
-  const isDark = document.body.classList.matches('dark');
+  const isDark = document.body.classList.contains('dark');
   localStorage.setItem('theme', isDark ? 'dark' : 'light');
   updateThemeBtn();
 }
@@ -130,9 +130,9 @@ function clearCompleted() {
   render();
 }
 function editTask(id) {
-  var task = tasks.find(function(t) { return t.id === id; });
+  const task = tasks.find(t => t.id === id);
   if (!task) return;
-  var newText = prompt('Sửa nội dung:', task.text);
+  const newText = prompt('Sua noi dung:', task.text);
   if (newText && newText.trim()) {
     task.text = newText.trim();
     save();
